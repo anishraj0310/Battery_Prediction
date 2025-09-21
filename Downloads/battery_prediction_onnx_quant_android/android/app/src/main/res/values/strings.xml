@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BatteryPredictor</string>
+    <string name="battery_level">Battery: %1$d%%</string>
+    <string name="prediction_channel">Battery Predictions</string>
+    <string name="prediction_title">Battery Prediction</string>
+    <string name="low_battery_alert">Battery Low Alert</string>
+    <string name="time_remaining">Time remaining: %1$d hours</string>
+    <string name="battery_warning">Warning: Battery low! %.1f%% remaining, %d hours left.</string>
+    <string name="model_error">Error loading battery prediction model</string>
+</resources>
