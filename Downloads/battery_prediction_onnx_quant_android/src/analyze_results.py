@@ -55,7 +55,8 @@ def get_predictions(model_path, df, preproc_path, seq_len=6):
             seq.append(vec)
         actuals.append([
             df.iloc[i + seq_len]["delta_next_hour_pct"],
-            df.iloc[i + seq_len]["tte_5pct_hours"]
+            df.iloc[i + seq_len]["tte_5pct_hours"],
+            df.iloc[i + seq_len]["energy_saved_by_alert"]
         ])
         sequences.append(seq)
     
@@ -80,6 +81,11 @@ metrics = {
         "MSE": mean_squared_error(actuals[:, 1], predictions[:, 1]),
         "MAE": mean_absolute_error(actuals[:, 1], predictions[:, 1]),
         "R2": r2_score(actuals[:, 1], predictions[:, 1])
+    },
+    "Energy Saved by Alert": {
+        "MSE": mean_squared_error(actuals[:, 2], predictions[:, 2]),
+        "MAE": mean_absolute_error(actuals[:, 2], predictions[:, 2]),
+        "R2": r2_score(actuals[:, 2], predictions[:, 2])
     }
 }
 
@@ -315,6 +321,10 @@ for i in range(5):
 print("\nTime to 5% Battery Predictions (hours):")
 for i in range(5):
     print(f"Actual: {actuals[i][1]:6.2f} | Predicted: {predictions[i][1]:6.2f}")
+
+print("\nEnergy Saved by Alert Predictions:")
+for i in range(5):
+    print(f"Actual: {actuals[i][2]:6.2f} | Predicted: {predictions[i][2]:6.2f}")
 
 # Additional Statistics
 print("\nDetailed Statistics:")

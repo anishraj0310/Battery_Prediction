@@ -46,8 +46,8 @@ def preprocess_data(csv_path, seq_len=6):
     for feat in cat_features:
         df[feat] = df[feat].astype("category").cat.codes
 
-    # Targets: delta_next_hour_pct, tte_hours
-    targets = ["delta_next_hour_pct", "tte_5pct_hours"]
+    # Targets: delta_next_hour_pct, tte_hours, energy_saved_by_alert
+    targets = ["delta_next_hour_pct", "tte_5pct_hours", "energy_saved_by_alert"]
 
     # Create sequences
     sequences = []
