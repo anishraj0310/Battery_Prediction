@@ -215,8 +215,166 @@ def analyze_features(df):
     plt.savefig('analysis_results/screen_usage_impact.png', dpi=300, bbox_inches='tight')
     plt.close()
 
+# Energy Saving Analysis
+def analyze_energy_savings(df):
+    # Basic app and network analysis
+    plt.figure(figsize=(20, 10))
+    plt.subplots_adjust(hspace=0.4, wspace=0.3)
+    
+    # First create separate detailed temperature analysis
+    plt.figure(figsize=(15, 8))
+    temp_ranges = pd.qcut(df['temperature_C'], q=10)  # Increased granularity
+    efficiency_by_temp = df.groupby(temp_ranges)['delta_next_hour_pct'].agg(['mean', 'std', 'count']).abs()
+    
+    # Main temperature plot
+    ax1 = plt.gca()
+    efficiency_by_temp.plot(kind='bar', y='mean', yerr='std', capsize=5, 
+                          color='skyblue', error_kw={'ecolor': 'red'}, ax=ax1)
+    plt.title('Temperature Impact on Battery Efficiency', pad=20, fontsize=14, fontweight='bold')
+    plt.xlabel('Temperature Range (°C)', labelpad=10, fontsize=12)
+    plt.ylabel('Average Battery Drain (%/hour)', labelpad=10, fontsize=12)
+    plt.xticks(rotation=45, ha='right')
+    
+    # Add sample count as text
+    for i, count in enumerate(efficiency_by_temp['count']):
+        ax1.text(i, ax1.get_ylim()[0], f'n={count}', 
+                rotation=90, va='bottom', ha='center', fontsize=10)
+    
+    # Add grid for better readability
+    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout(pad=2.0)
+    plt.savefig('analysis_results/temperature_efficiency_analysis.png', 
+                dpi=300, bbox_inches='tight', pad_inches=0.5)
+    plt.close()
+    
+    # Now create separate detailed brightness analysis
+    plt.figure(figsize=(15, 8))
+    
+    # Create more detailed brightness ranges
+    brightness_ranges = pd.qcut(df['brightness'], q=10)
+    brightness_analysis = df.groupby(brightness_ranges).agg({
+        'delta_next_hour_pct': ['mean', 'std', 'count'],
+        'screen_on_hours': 'mean'
+    })
+    
+    # Create twin axes for drain rate and screen time
+    ax1 = plt.gca()
+    ax2 = ax1.twinx()
+    
+    # Plot battery drain
+    brightness_analysis['delta_next_hour_pct']['mean'].abs().plot(
+        kind='bar', yerr=brightness_analysis['delta_next_hour_pct']['std'], 
+        capsize=5, color='lightcoral', ax=ax1, width=0.8,
+        error_kw={'ecolor': 'darkred'}
+    )
+    
+    # Plot screen time as a line
+    brightness_analysis['screen_on_hours']['mean'].plot(
+        color='darkblue', marker='o', ax=ax2, linewidth=2
+    )
+    
+    # Customize the plot
+    ax1.set_title('Screen Brightness Impact on Battery Life', pad=20, fontsize=14, fontweight='bold')
+    ax1.set_xlabel('Brightness Level (Quantiles)', labelpad=10, fontsize=12)
+    ax1.set_ylabel('Battery Drain (%/hour)', labelpad=10, fontsize=12, color='darkred')
+    ax2.set_ylabel('Average Screen-on Time (hours)', labelpad=10, fontsize=12, color='darkblue')
+    
+    # Rotate x-labels
+    plt.xticks(rotation=45, ha='right')
+    
+    # Add sample counts
+    for i, count in enumerate(brightness_analysis['delta_next_hour_pct']['count']):
+        ax1.text(i, ax1.get_ylim()[0], f'n={count}', 
+                rotation=90, va='bottom', ha='center', fontsize=10)
+    
+    # Add grid
+    ax1.grid(True, axis='y', linestyle='--', alpha=0.7)
+    
+    # Adjust colors
+    ax1.tick_params(axis='y', labelcolor='darkred')
+    ax2.tick_params(axis='y', labelcolor='darkblue')
+    
+    plt.tight_layout(pad=2.0)
+    plt.savefig('analysis_results/brightness_efficiency_analysis.png', 
+                dpi=300, bbox_inches='tight', pad_inches=0.5)
+    plt.close()
+    
+    # Create figure with more space between subplots for the main analysis
+    plt.figure(figsize=(20, 14))
+    plt.subplots_adjust(hspace=0.4, wspace=0.3)
+    
+    # 1. Energy consumption by app and network state
+    plt.subplot(2, 2, 1)
+    pivot_data = df.pivot_table(
+        values='delta_next_hour_pct',
+        index='app_active',
+        columns='network_active',
+        aggfunc='mean'
+    ).abs()
+    sns.heatmap(pivot_data, annot=True, cmap='YlOrRd', fmt='.2f', cbar_kws={'label': 'Battery Drain (%/hour)'})
+    plt.title('Energy Consumption by App and Network State', pad=20, fontsize=12, fontweight='bold')
+    plt.xlabel('Network Active', labelpad=10)
+    plt.ylabel('Application', labelpad=10)
+
+    # 2. Battery drain distribution by time
+    plt.subplot(2, 2, 2)
+    sns.boxplot(data=df, x='is_weekend', y='delta_next_hour_pct', 
+                hue='network_active', palette='Set3')
+    plt.title('Battery Drain Distribution: Weekend vs Weekday', pad=20, fontsize=12, fontweight='bold')
+    plt.xlabel('Weekend', labelpad=10)
+    plt.ylabel('Battery Drain (%/hour)', labelpad=10)
+    plt.legend(title='Network Active', title_fontsize=10, bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    # 3. Temperature vs Energy Efficiency
+    plt.subplot(2, 2, 3)
+    temp_ranges = pd.qcut(df['temperature_C'], q=5)
+    efficiency_by_temp = df.groupby(temp_ranges)['delta_next_hour_pct'].agg(['mean', 'std']).abs()
+    ax = efficiency_by_temp.plot(kind='bar', y='mean', yerr='std', capsize=5, color='skyblue', error_kw={'ecolor': 'red'})
+    plt.title('Energy Efficiency vs Temperature Ranges', pad=20, fontsize=12, fontweight='bold')
+    plt.xlabel('Temperature Range (°C)', labelpad=10)
+    plt.ylabel('Average Battery Drain (%/hour)', labelpad=10)
+    plt.xticks(rotation=45, ha='right')
+
+    # 4. Screen Brightness vs Energy Usage
+    plt.subplot(2, 2, 4)
+    brightness_ranges = pd.qcut(df['brightness'], q=5)
+    sns.boxplot(data=df, x=brightness_ranges, y='delta_next_hour_pct', palette='YlOrRd')
+    plt.title('Energy Usage vs Screen Brightness', pad=20, fontsize=12, fontweight='bold')
+    plt.xlabel('Brightness Level (Quantiles)', labelpad=10)
+    plt.ylabel('Battery Drain (%/hour)', labelpad=10)
+    plt.xticks(rotation=45, ha='right')
+
+    # Adjust layout with extra padding
+    plt.tight_layout(pad=3.0, h_pad=2.0, w_pad=2.0)
+    
+    # Save with high quality and extra padding
+    plt.savefig('analysis_results/energy_savings_analysis.png', 
+                dpi=300, 
+                bbox_inches='tight',
+                pad_inches=0.5,
+                facecolor='white',
+                edgecolor='none')
+    plt.close()
+
+    # Calculate potential energy savings
+    avg_drain = df['delta_next_hour_pct'].abs().mean()
+    optimal_drain = df[df['brightness'] < df['brightness'].quantile(0.4)]['delta_next_hour_pct'].abs().mean()
+    potential_savings = ((avg_drain - optimal_drain) / avg_drain) * 100
+
+    print("\nEnergy Savings Analysis:")
+    print("-" * 50)
+    print(f"Average Battery Drain: {avg_drain:.2f}%/hour")
+    print(f"Optimal Battery Drain: {optimal_drain:.2f}%/hour")
+    print(f"Potential Energy Savings: {potential_savings:.1f}%")
+    
+    # App-specific analysis
+    print("\nApp-specific Energy Consumption:")
+    app_consumption = df.groupby('app_active')['delta_next_hour_pct'].agg(['mean', 'std']).abs()
+    print(app_consumption)
+
 # Run feature analysis
 analyze_features(original_df)
+analyze_energy_savings(original_df)
 
 # Print feature statistics
 print("\nFeature Statistics:")

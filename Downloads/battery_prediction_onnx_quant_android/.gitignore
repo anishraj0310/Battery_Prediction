@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+virtualenv/
+ENV/
+
+# Data and models (if large, but keep for project)
+# runs/  # Keep models in repo
+
+# Analysis outputs
+analysis_results/
+# Uncomment if you want to commit plots
+# analysis_results/
+
+# Android build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# IDEs
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS generated files
+Thumbs.db
+icon?
+
+# Temporary files
+*.tmp
+*.temp
