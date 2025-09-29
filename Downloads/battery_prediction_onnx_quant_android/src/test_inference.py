@@ -53,5 +53,5 @@ input_array = np.array(sequence, dtype=np.float32).reshape(1, 6, -1)
 ort_inputs = {ort_session.get_inputs()[0].name: input_array}
 ort_outs = ort_session.run(None, ort_inputs)
 
-delta_pct, tte_hours = ort_outs[0][0]
-print(f"Predicted battery drop: {delta_pct:.2f}%, Time to 5%: {tte_hours:.1f} hours")
+delta_pct, tte_hours, energy_saved = ort_outs[0][0]
+print(f"Predicted battery drop: {delta_pct:.2f}%, Time to 5%: {tte_hours:.1f} hours, Energy saved by alert: {energy_saved:.2f}")
